@@ -1,3 +1,6 @@
+import logging
+logger = logging.getLogger("uvicorn.error")
+
 from fastapi import Header, HTTPException
 from supabase import Client
 
@@ -31,5 +34,6 @@ def get_supabase(authorization: str = Header(None)) -> Client:
         # Store user ID on client object for easy retrieval in route handlers
         client.auth_user_id = user_resp.user.id
         return client
-    except Exception:
+    except Exception as e:
+        logger.error(f"Auth verification failed: {type(e).__name__}: {str(e)}")
         raise HTTPException(status_code=401, detail="Not authenticated")
