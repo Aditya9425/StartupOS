@@ -1,0 +1,300 @@
+import React from "react";
+import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
+
+// Helper for action plan
+const ACTION_PLAN_MAP: Record<string, string> = {
+  "validation": "Run 20 customer discovery interviews before writing a single line of code.",
+  "gtm": "Launch on one channel only. Master it before expanding.",
+  "revenue": "Charge from day 1. Even $1 validates willingness to pay.",
+  "tech": "Build the simplest possible MVP. One core feature only.",
+  "customers": "Find your first 10 customers manually. Do things that don't scale.",
+  "funding": "Get to default alive before raising. Revenue is your best pitch deck."
+};
+
+const AGENT_ROLES: Record<string, string> = {
+  "ceo": "CEO Agent • Mission, Vision & Strategy",
+  "product": "Product Agent • Features, Personas & MVP",
+  "marketing": "Marketing Agent • Go-to-Market & Channels",
+  "finance": "Finance Agent • Revenue Model & Pricing",
+  "engineering": "Engineering Agent • Tech Stack & Architecture"
+};
+
+const styles = StyleSheet.create({
+  page: {
+    fontFamily: "Helvetica",
+    padding: 40,
+    backgroundColor: "#ffffff",
+    color: "#000000",
+  },
+  coverPage: {
+    fontFamily: "Helvetica",
+    padding: 40,
+    backgroundColor: "#000000",
+    color: "#ffffff",
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "center",
+  },
+  logoText: {
+    position: "absolute",
+    top: 40,
+    left: 40,
+    fontSize: 12,
+    fontWeight: "bold",
+    letterSpacing: 1,
+  },
+  coverHeading: {
+    fontSize: 16,
+    color: "#888888",
+    marginBottom: 10,
+    textTransform: "uppercase",
+    letterSpacing: 2,
+  },
+  coverName: {
+    fontSize: 32,
+    fontWeight: "bold",
+    marginBottom: 20,
+    lineHeight: 1.2,
+  },
+  coverSubtitle: {
+    fontSize: 14,
+    color: "#aaaaaa",
+    marginBottom: 40,
+  },
+  coverScoreBox: {
+    marginTop: 60,
+    borderTop: "1 solid #333333",
+    paddingTop: 40,
+  },
+  coverScore: {
+    fontSize: 48,
+    fontWeight: "bold",
+    marginBottom: 10,
+  },
+  coverVerdict: {
+    fontSize: 14,
+    color: "#cccccc",
+    lineHeight: 1.5,
+  },
+  pageNumber: {
+    position: "absolute",
+    bottom: 40,
+    right: 40,
+    fontSize: 8,
+    color: "#888888",
+  },
+  footerText: {
+    position: "absolute",
+    bottom: 40,
+    left: 40,
+    fontSize: 8,
+    color: "#888888",
+  },
+  sectionTitle: {
+    fontSize: 24,
+    fontWeight: "bold",
+    marginBottom: 30,
+    borderBottom: "1 solid #eeeeee",
+    paddingBottom: 10,
+  },
+  agentHeader: {
+    fontSize: 14,
+    fontWeight: "bold",
+    marginTop: 20,
+    marginBottom: 10,
+    color: "#333333",
+  },
+  bodyText: {
+    fontSize: 10,
+    lineHeight: 1.6,
+    color: "#444444",
+    marginBottom: 10,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: "#eeeeee",
+    marginVertical: 20,
+  },
+  scoreRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 10,
+  },
+  scoreLabel: {
+    fontSize: 10,
+    color: "#666666",
+    textTransform: "capitalize",
+  },
+  scoreValue: {
+    fontSize: 10,
+    fontWeight: "bold",
+  },
+  listContainer: {
+    marginTop: 20,
+    marginBottom: 20,
+  },
+  listItem: {
+    flexDirection: "row",
+    marginBottom: 8,
+  },
+  listIcon: {
+    fontSize: 10,
+    marginRight: 8,
+    width: 15,
+  },
+  listText: {
+    fontSize: 10,
+    lineHeight: 1.5,
+    flex: 1,
+    color: "#444444",
+  },
+  actionItem: {
+    marginBottom: 20,
+    padding: 15,
+    backgroundColor: "#f9f9f9",
+    borderLeft: "2 solid #000000",
+  },
+  actionText: {
+    fontSize: 12,
+    lineHeight: 1.5,
+    fontWeight: "bold",
+  }
+});
+
+interface BlueprintPDFProps {
+  startupName: string;
+  blueprint: any;
+  validationScore: any;
+  challenges: string[];
+  date: string;
+}
+
+export default function BlueprintPDF({ startupName, blueprint, validationScore, challenges, date }: BlueprintPDFProps) {
+  
+  const renderAgentContent = (content: string) => {
+    // Basic splitting by double newline to create paragraphs
+    const paragraphs = content.split('\\n\\n').filter(p => p.trim() !== '');
+    return paragraphs.map((p, i) => (
+      <Text key={i} style={styles.bodyText}>{p.trim().replace(/\\n/g, ' ')}</Text>
+    ));
+  };
+
+  const scores = validationScore?.scores || {};
+  const scoreKeys = Object.keys(scores);
+
+  // Generate action plan based on challenges. If none, provide a default.
+  let activeChallenges = challenges || [];
+  if (activeChallenges.length === 0) {
+    activeChallenges = ["validation", "gtm"]; // default
+  }
+
+  return (
+    <Document>
+      {/* Page 1: Cover */}
+      <Page size="A4" style={styles.coverPage}>
+        <Text style={styles.logoText}>StartupOS</Text>
+        <Text style={styles.coverHeading}>Startup Blueprint</Text>
+        <Text style={styles.coverName}>{startupName || "Unnamed Startup"}</Text>
+        <Text style={styles.coverSubtitle}>Generated by 5 AI agents • {date}</Text>
+        
+        {validationScore && (
+          <View style={styles.coverScoreBox}>
+            <Text style={styles.coverScore}>{validationScore.overall}/100</Text>
+            <Text style={styles.coverVerdict}>{validationScore.verdict}</Text>
+          </View>
+        )}
+      </Page>
+
+      {/* Page 2: Validation */}
+      {validationScore && (
+        <Page size="A4" style={styles.page}>
+          <Text style={styles.sectionTitle}>Idea Validation</Text>
+          
+          <View style={{ marginBottom: 30 }}>
+            <Text style={styles.agentHeader}>Dimension Scores</Text>
+            {scoreKeys.map(key => (
+              <View key={key} style={styles.scoreRow}>
+                <Text style={styles.scoreLabel}>{key.replace('_', ' ')}</Text>
+                <Text style={styles.scoreValue}>{scores[key]} / 10</Text>
+              </View>
+            ))}
+          </View>
+
+          <View style={styles.listContainer}>
+            <Text style={styles.agentHeader}>Top Strengths</Text>
+            {validationScore.strengths?.map((s: string, i: number) => (
+              <View key={i} style={styles.listItem}>
+                <Text style={styles.listIcon}>✓</Text>
+                <Text style={styles.listText}>{s}</Text>
+              </View>
+            ))}
+          </View>
+
+          <View style={styles.listContainer}>
+            <Text style={styles.agentHeader}>Top Risks</Text>
+            {validationScore.risks?.map((r: string, i: number) => (
+              <View key={i} style={styles.listItem}>
+                <Text style={styles.listIcon}>⚠</Text>
+                <Text style={styles.listText}>{r}</Text>
+              </View>
+            ))}
+          </View>
+
+          <Text style={styles.footerText}>Generated by StartupOS</Text>
+          <Text style={styles.pageNumber}>2</Text>
+        </Page>
+      )}
+
+      {/* Page 3: Blueprint */}
+      <Page size="A4" style={styles.page}>
+        <Text style={styles.sectionTitle}>The Blueprint</Text>
+        
+        {["ceo", "product", "marketing", "finance", "engineering"].map((agent, index) => {
+          if (!blueprint || !blueprint[agent]) return null;
+          return (
+            <View key={agent} wrap={true}>
+              <Text style={styles.agentHeader}>{AGENT_ROLES[agent]}</Text>
+              {renderAgentContent(blueprint[agent])}
+              {index < 4 && <View style={styles.divider} />}
+            </View>
+          );
+        })}
+
+        <Text style={styles.footerText}>Generated by StartupOS</Text>
+        <Text style={styles.pageNumber}>3</Text>
+      </Page>
+
+      {/* Page 4: Next Steps */}
+      <Page size="A4" style={styles.page}>
+        <Text style={styles.sectionTitle}>Your Action Plan</Text>
+        
+        <Text style={styles.bodyText}>
+          Based on your startup&apos;s stage and primary challenges, our agents recommend focusing on these immediate next steps:
+        </Text>
+
+        <View style={{ marginTop: 30 }}>
+          {activeChallenges.map((c, i) => (
+            <View key={c} style={styles.actionItem}>
+              <Text style={styles.actionText}>{i + 1}. {ACTION_PLAN_MAP[c] || ACTION_PLAN_MAP["validation"]}</Text>
+            </View>
+          ))}
+          {/* Always provide a few standard ones to reach 5 steps if they only selected 1 or 2 challenges */}
+          {!activeChallenges.includes("validation") && (
+             <View style={styles.actionItem}>
+               <Text style={styles.actionText}>{activeChallenges.length + 1}. {ACTION_PLAN_MAP["validation"]}</Text>
+             </View>
+          )}
+          {!activeChallenges.includes("revenue") && (
+             <View style={styles.actionItem}>
+               <Text style={styles.actionText}>{activeChallenges.length + 2}. {ACTION_PLAN_MAP["revenue"]}</Text>
+             </View>
+          )}
+        </View>
+
+        <Text style={styles.footerText}>Generated by StartupOS</Text>
+        <Text style={styles.pageNumber}>4</Text>
+      </Page>
+
+    </Document>
+  );
+}
